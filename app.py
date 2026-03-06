@@ -1,45 +1,39 @@
-# save this as app.py
-from flask import Flask
+from flask import Flask, jsonify
 from routes.movies_bp import movies_bp
 from config import Config
 from extensions import db
 from sqlalchemy.sql import text
 
-
 app = Flask(__name__)
-app.config.from_object(Config)  # URL
+app.config.from_object(Config)
 
-db.init_app(app)  # call button
+db.init_app(app)
 
 
-# Testing DB Connection
-with app.app_context():
+def test_connection():
     try:
         result = db.session.execute(text("SELECT 1")).fetchall()
         print("Connection successful:", result)
     except Exception as e:
         print("Error connecting to the database:", e)
 
-# Task
-# /api/movies - JSON
+
+with app.app_context():
+    test_connection()
 
 
-# @ -> Decorator -> HOF
 @app.get("/")
 def hello():
-    return "<h1>Hello, World! 🎉 🔥</h1>"
+    return jsonify(message="API Running")
 
 
 app.register_blueprint(movies_bp, url_prefix="/api/movies")
 
 
-# Task
-# 1. Postman - create 3 Api
-# 2. Handle Not Found
-# 3. Delete movie
+@app.errorhandler(404)
+def not_found(e):
+    return {"error": "Resource not found"}, 404
 
-# Delete
 
-# BluePrint
-# 1. Organizing
-# 2. Template - Scale
+if __name__ == "__main__":
+    app.run(debug=True)
